@@ -1046,7 +1046,24 @@ async function loginWithEmailPassword(context, page, user) {
             const p = (() => { try { return new URL(url).pathname; } catch (e) { return url; } })();
             if (url.includes('bot-hosting.net') && !p.startsWith('/login')) {
                 console.log(`✅ Email+Password 登录成功！当前页面：${url}`);
-                return true;
+                
+                const { value } = await getCookieInfo(context, 'session_token');
+                if (value) {
+                    console.log('✅ 已获取 session_token！');
+                }
+
+                console.log('🌐 访问 https://bot-hosting.net/a/billings ...');
+                await page.goto('https://bot-hosting.net/a/billings', { waitUntil: 'domcontentloaded', timeout: 60000 });
+                await sleep(3000);
+                const currentUrl = page.url();
+                console.log(`📝 当前URL: ${currentUrl}`);
+
+                if (currentUrl.includes('/a/billings') && !currentUrl.includes('/login') && !currentUrl.includes('error=')) {
+                    console.log('✅ 当前已到达账单页');
+                    return true;
+                }
+                console.log('⚠️ 账单页访问失败');
+                return false;
             }
             const { value } = await getCookieInfo(context, 'session_token');
             if (value) {
